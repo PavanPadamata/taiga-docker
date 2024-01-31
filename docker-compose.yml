@@ -4,10 +4,11 @@ x-environment:
   &default-back-environment
   # These environment variables will be used by taiga-back and taiga-async.
   # Database settings
-  POSTGRES_DB: "taiga"
-  POSTGRES_USER: "${POSTGRES_USER}"
-  POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
-  POSTGRES_HOST: "taiga-db"
+  MYSQL_DB: "taiga"
+  MYSQL_USER: "${MYSQL_USER}"
+  MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+  MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"  # Added this line
+  MYSQL_HOST: "taiga-db"
   # Taiga settings
   TAIGA_SECRET_KEY: "${SECRET_KEY}"
   TAIGA_SITES_SCHEME: "${TAIGA_SCHEME}"
@@ -31,26 +32,27 @@ x-environment:
 
 x-volumes:
   &default-back-volumes
-  # These volumens will be used by taiga-back and taiga-async.
+  # These volumes will be used by taiga-back and taiga-async.
   - taiga-static-data:/taiga-back/static
   - taiga-media-data:/taiga-back/media
   # - ./config.py:/taiga-back/settings/config.py
 
 services:
   taiga-db:
-    image: postgres:12.3
+    image: mysql:latest
     environment:
-      POSTGRES_DB: "taiga"
-      POSTGRES_USER: "${POSTGRES_USER}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      MYSQL_DATABASE: "taiga"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "mysqladmin ping -u${MYSQL_USER} -p${MYSQL_PASSWORD} -h taiga-db"]
       interval: 2s
       timeout: 15s
       retries: 5
       start_period: 3s
     volumes:
-      - taiga-db-data:/var/lib/postgresql/data
+      - taiga-db-data:/var/lib/mysql
     networks:
       - taiga
 
